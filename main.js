@@ -4,7 +4,7 @@
 // Especially the Coordinator
 
 module.exports = {
-    loop = function() {
+    loop: function() {
         // Coordinator coordinates
         // Coordinator delegates
         // Coordinator assesses
