@@ -7,4 +7,4 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Run ESLint
-      run: npx eslint --ext .js --no-eslintrc .
+      run: npx eslint --ext .js .
