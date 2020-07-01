@@ -75,7 +75,7 @@ module.exports = {
         var name = type + "_" + (++this.memory.creeps.All);
         for (spawnId in this.memory.structures[STRUCTURE_SPAWN]) {
             var spawn = Game.getObjectById(spawnId);
-            if (spawn.spawnCreep(recipe, name, {dryRun = true}) == OK) {
+            if (spawn.spawnCreep(recipe, name, {dryRun: true}) == OK) {
                 var newCreep = spawn.spawnCreep(recipe, name, memory = {
                     role: type,
                     target: target.id
