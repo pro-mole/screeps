@@ -1,6 +1,6 @@
 // Harvester Worker Behavior
 
-const states = {
+var states = {
     IDLE: "idle",
     MOVING: "moving",
     HARVESTING: "harvesting",

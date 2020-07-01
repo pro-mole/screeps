@@ -4,8 +4,8 @@
 var Coordinator = require("coordinator")
 
 module.exports = {
-    coordinator = Coordinator,
-    loop = function() {
+    coordinator: Coordinator,
+    loop: function() {
         Coordinator.assess();
 
         for (creep of Game.creeps) {

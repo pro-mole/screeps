@@ -6,10 +6,10 @@ var _ = require("lodash")
 var WorkerRecipes = require("recipes")
 
 Memory.coordinator = {
-    structures = {
+    structures: {
     },
-    creeps = {
-        All = 0
+    creeps: {
+        All: 0
     }
 }
 
@@ -77,8 +77,8 @@ module.exports = {
             var spawn = Game.getObjectById(spawnId);
             if (spawn.spawnCreep(recipe, name, {dryRun = true}) == OK) {
                 var newCreep = spawn.spawnCreep(recipe, name, memory = {
-                    role = type,
-                    target = target.id
+                    role: type,
+                    target: target.id
                 });
                 var workerPrototype = require("worker/" + type);
                 workerPrototype.init(newCreep, target.id);
