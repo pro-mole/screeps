@@ -1,0 +1,8 @@
+name: Tools
+on: push
+jobs:
+  ESLint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install modules
+      run: yarn add eslint --dev
