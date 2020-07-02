@@ -8,9 +8,6 @@ import json
 import argparse
 import requests
 
-auth_email = "guedesav@brazmogu.com.br"
-auth_pass = "S70n3M0lE"
-
 def add_module(mod_name, mod_file, repo_dict):
     with open(mod_file) as module:
         print("... %s" % mod_name)
@@ -28,6 +25,8 @@ def list_modules(root, repo_dict, prefix=""):
 parser = argparse.ArgumentParser(description="Commits all code in a subfolder into a remote Screeps repository")
 parser.add_argument('local_repo', type=str, help="Name of the local folder repository")
 parser.add_argument('--to', dest='remote_repo', type=str, help="Name of the remote repository (defaults to the folder name itself)")
+parser.add_argument('-u', dest='username', type=str, help="Screeps username", required=True)
+parser.add_argument('-p', dest='password', type=str, help="Screeps password", required=True)
 
 args = parser.parse_args()
 if args.remote_repo == None: args.remote_repo = args.local_repo
@@ -44,7 +43,7 @@ list_modules(args.local_repo, repo_data)
 
 response = requests.post("https://screeps.com:443/api/user/code",
     json=repo_data,
-    auth=(auth_email,  auth_pass))
+    auth=(args.username,  args.password))
 
 
 if response.ok: print ("OK!")
