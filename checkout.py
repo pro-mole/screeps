@@ -8,12 +8,11 @@ import json
 import argparse
 import requests
 
-auth_email = "guedesav@brazmogu.com.br"
-auth_pass = "S70n3M0lE"
-
 parser = argparse.ArgumentParser(description="Commits all code in a subfolder into a remote Screeps repository")
 parser.add_argument('remote_repo', type=str, help="Name of the remote repository")
 parser.add_argument('--to', dest='local_repo', type=str, help="Name of the local folder repository (defaults to the repository name itself)")
+parser.add_argument('-u', dest='username', type=str, help="Screeps username", required=True)
+parser.add_argument('-p', dest='password', type=str, help="Screeps password", required=True)
 
 args = parser.parse_args()
 if args.local_repo == None: args.local_repo = args.remote_repo
@@ -24,7 +23,7 @@ response = requests.get("https://screeps.com:443/api/user/code?branch=" + args.r
     json={
         'branch': args.remote_repo
     },
-    auth=(auth_email,  auth_pass))
+    auth=(args.username,  args.password))
 
 modules = {}
 if response.ok:
