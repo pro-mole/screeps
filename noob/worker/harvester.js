@@ -7,58 +7,59 @@ var states = {
     DUMPING: "dumping"
 };
 
-module.export = {
+module.exports = {
     init: function(creep, target) {
         creep.memory.status = states.IDLE;
-
-        creep.prototype.assess = this.assess;
-        creep.prototype.run = this.run;
     },
-    assess: function() {
-        if (this.memory.status == states.IDLE) {
-            if (this.memory.destination != undefined) {
+    assess: function(creep) {
+        if (creep.memory.status == states.IDLE) {
+            if (creep.memory.destination != undefined) {
                 // Trace the path to the destination
-                this.memory.status = states.MOVING;
+                creep.memory.status = states.MOVING;
+                this.log(creep, "Status Change: MOVING", "MOVING");
             }
+            else { this.log(creep, "Stay IDLE"); }
         }
-
-        if (this.memory.status == states.MOVING) {
-            var destination = Game.getObjectById(this.memory.destination);
-            if (this.pos.isNearTo(destination.pos)) {
-                if (this.memory.destination == this.memory.target) {
-                    this.memory.status = states.HARVESTING;
+        else if (creep.memory.status == states.MOVING) {
+            var destination = Game.getObjectById(creep.memory.destination);
+            if (creep.pos.isNearTo(destination.pos)) {
+                if (creep.memory.destination == creep.memory.target) {
+                    creep.memory.status = states.HARVESTING;
+                    this.log(creep, "Status Change: HARVESTING", "HARVESTING");
                 }
                 else {
-                    this.memory.status = states.DUMPING;
+                    creep.memory.status = states.DUMPING;
+                    this.log(creep, "Status Change: DUMPING", "DUMPING");
                 }
             }
         }
-
-        if (this.memory.status == states.HARVESTING) {
-            if (this.store.getFreeCapacity() == 0) {
-                this.memory.destination = null;
-                this.memory.status = states.IDLE;
+        else if (creep.memory.status == states.HARVESTING) {
+            if (creep.store.getFreeCapacity() == 0) {
+                creep.memory.destination = null;
+                creep.memory.status = states.IDLE;
+                this.log(creep, "Status Change: IDLE", "IDLE");
             }
         }
-
-        if (this.memory.status == states.DUMPING) {
-            if (this.store.getUsedCapacity() == 0) {
-                this.memory.destination = null;
-                this.memory.status = states.IDLE;
+        else if (creep.memory.status == states.DUMPING) {
+            if (creep.store.getUsedCapacity() == 0) {
+                creep.memory.destination = null;
+                creep.memory.status = states.IDLE;
+                this.log(creep, "Status Change: IDLE", "IDLE");
             }
         }
     },
-    run: function() {
-        if (this.memory.status == states.IDLE) {
+    run: function(creep) {
+        if (creep.memory.status == states.IDLE) {
             // Is it full?
-            if (this.store.getFreeCapacity() == 0) {
-                // Do we have somewhere to dump this?
-                if (this.memory.destination == undefined) {
+            if (creep.store.getFreeCapacity() == 0) {
+                // Do we have somewhere to dump creep?
+                if (creep.memory.destination == undefined) {
                     // Find a destination to trace a path towards
                     // Priority 1 - Spawns
-                    for (let spawn of this.room.find(FIND_MY_SPAWNS)) {
+                    for (let spawn of creep.room.find(FIND_MY_SPAWNS)) {
                         if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                            this.memory.destination = spawn.id;
+                            creep.memory.destination = spawn.id;
+                            this.log(creep, "Destination set to Spawn " + spawn.id);
                             break;
                         }
                     }
@@ -66,28 +67,40 @@ module.export = {
             }
             else {
                 // Are we moving towards the source?
-                if (this.memory.destination == undefined) {
-                    this.memory.destination = this.memory.target;
+                if (creep.memory.destination == undefined) {
+                    creep.memory.destination = creep.memory.target;
+                    this.log(creep, "Destination set to my Source");
                 }
             }
         }
 
-        if (this.memory.status == states.MOVING) {
-            var destination = Game.getObjectById(this.memory.destination);
+        if (creep.memory.status == states.MOVING) {
+            var destination = Game.getObjectById(creep.memory.destination);
             var moveResponse = "";
-            while (moveResponse != ERR_TIRED && !this.pos.isNearTo(destination.pos)) {
-                moveResponse = this.moveTo(destination, {
-                    reusePath: 32
-                });
-            }
+            moveResponse = creep.moveTo(destination, {
+                reusePath: 32,
+                visualizePathStyle: {
+                    fill: 'transparent',
+                    stroke: '#fff',
+                    lineStyle: 'dashed',
+                    strokeWidth: .15,
+                    opacity: .1
+                }
+            });
         }
 
-        if (this.memory.status == states.HARVESTING) {
-            this.harvest(Game.getObjectById(this.memory.target));
+        if (creep.memory.status == states.HARVESTING) {
+            creep.harvest(Game.getObjectById(creep.memory.target));
         }
 
-        if (this.memory.status == states.DUMPING) {
-            this.transger(Game.getObjectById(this.memory.destination), RESOURCE_ENERGY);
+        if (creep.memory.status == states.DUMPING) {
+            creep.transfer(Game.getObjectById(creep.memory.destination), RESOURCE_ENERGY);
+        }
+    },
+    log: function(creep, msg, chatter) {
+        console.log("[" + creep.name + "]: " + msg);
+        if (chatter != undefined) {
+            creep.say(chatter);
         }
     }
 }
