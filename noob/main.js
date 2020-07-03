@@ -1,5 +1,8 @@
 // Main Module
 
+// Various internal APIs
+require("api.worker")
+
 // Import and initialize the modules
 var Coordinator = require("coordinator")
 
@@ -15,14 +18,11 @@ module.exports = {
             let creep = Game.creeps[creepId];
             if (!creep.spawning)
             {
-                let workerPrototype = require("worker." + creep.memory.role);
-                
                 if (!creep.memory.initialized) {
-                    workerPrototype.init(creep, creep.memory.target);
-                    creep.memory.initialized = true;
+                    creep.init();
                 }
-                workerPrototype.assess(creep);
-                workerPrototype.run(creep);
+                creep.assess();
+                creep.run();
             }
         }
     }
