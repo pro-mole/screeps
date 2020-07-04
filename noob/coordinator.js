@@ -5,21 +5,27 @@ var _ = require("lodash")
 
 var WorkerRecipes = require("recipes")
 
-Memory.coordinator = {
-    initialized: false,
-    structures: {
-    },
-    sources: {
-    },
-    creeps: {
-        All: 0
-    }
-}
-
 module.exports = {
-    memory: Memory.coordinator,
-    process: {},
     init: function() {
+        // This object may be re-created from time to time
+        // Double-check that the global memory is correct and go on
+        if (Memory.coordinator && Memory.coordinator.initialized) {
+            if (!this.memory) this.memory = Memory.coordinator;
+            return;
+        }
+
+        Memory.coordinator = {
+            initialized: true,
+            structures: {
+            },
+            sources: {
+            },
+            creeps: {
+                All: 0
+            }
+        }
+        this.memory = Memory.coordinator;
+        
         // Assess all structures in my rooms
         for (let roomName in Game.rooms) {
             var room = Game.rooms[roomName];
@@ -31,8 +37,6 @@ module.exports = {
                 this.addSource(source);
             }
         }
-        
-        this.memory.initialized = true;
     },
     assess: function() {
         // Create harvesters for the sources
