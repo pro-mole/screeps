@@ -25,5 +25,7 @@ module.exports = {
                 creep.run();
             }
         }
+
+        Coordinator.cleanup();
     }
 }

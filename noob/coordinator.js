@@ -102,5 +102,26 @@ module.exports = {
         }
 
         return false;
+    },
+    cleanup: function() {
+        for (let sourceId in this.memory.sources) {
+            let workerId = this.memory.sources[sourceId].worker;
+            if (workerId != undefined) {
+                let worker = Game.creeps[workerId];
+                if (worker == undefined) {
+                    source.worker = undefined;
+                }
+            }
+        }
+
+        for (let structId in this.memory.structures) {
+            let workerId = this.memory.structures[structId].worker;
+            if (workerId != undefined) {
+                let worker = Game.creeps[workerId];
+                if (worker == undefined) {
+                    source.worker = undefined;
+                }
+            }
+        }
     }
 }
