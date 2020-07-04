@@ -1,5 +1,7 @@
 // Main Module
 
+var _ = require('lodash')
+
 // Various internal APIs
 require("api.worker")
 
@@ -14,17 +16,22 @@ module.exports = {
         }
         Coordinator.assess();
 
-        for (let creepId in Game.creeps) {
-            let creep = Game.creeps[creepId];
-            if (!creep.spawning)
-            {
-                if (!creep.memory.initialized) {
-                    creep.init();
-                }
+        _.forEach(Game.creeps, function(creep, name) {
+            if (!creep.memory.initialized && !creep.spawning) {
+                creep.init();
+            }
+        });
+
+        _.forEach(Game.creeps, function(creep, name) {
+            if (creep.memory.initialized) {
                 creep.assess();
+            }
+        });
+        _.forEach(Game.creeps, function(creep, name) {
+            if (creep.memory.initialized) {
                 creep.run();
             }
-        }
+        });
 
         Coordinator.cleanup();
     }
