@@ -16,22 +16,14 @@ module.exports = {
         }
         Coordinator.assess();
 
-        _.forEach(Game.creeps, function(creep, name) {
-            if (!creep.memory.initialized && !creep.spawning) {
-                creep.init();
-            }
-        });
+        let creeps = _.filter(Game.creeps, (creep) => !creep.spawning);
+        _.forEach(_.filter(creeps, (creep) => !creep.memory.initialized),
+            (creep) => creep.init()
+        );
 
-        _.forEach(Game.creeps, function(creep, name) {
-            if (creep.memory.initialized) {
-                creep.assess();
-            }
-        });
-        _.forEach(Game.creeps, function(creep, name) {
-            if (creep.memory.initialized) {
-                creep.run();
-            }
-        });
+        _.remove(creeps, (creep) => !creep.memory.initialized)
+        _.forEach(creeps, (creep) => creep.assess());
+        _.forEach(creeps, (creep) => creep.run());
 
         Coordinator.cleanup();
     }
