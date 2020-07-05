@@ -40,9 +40,18 @@ module.exports = {
     },
     assess: function() {
         // Create harvesters for the sources
-        for (let sourceId in this.memory.sources) {
-            if (this.memory.sources[sourceId].worker == undefined) {
-                this.addStructureWorker("harvester", Game.getObjectById(sourceId));
+        var knownSources = _.map(this.memory.sources,
+            (sourceData, sourceId) => Game.getObjectById(sourceId));
+        var vacantSources = _.filter(knownSources,
+            (source) => this.memory.sources[source.id].worker == undefined);
+        
+        for (let spawnId in Game.spawns) {
+            let spawn = Game.spawns[spawnId];
+            if (!spawn.memory.spawning) {
+                var closestSource = spawn.pos.findClosestByPath(vacantSources);
+                if (this.addStructureWorker("harvester", closestSource, spawn)) {
+                    _.remove(vacantSources, (source) => source.id == closestSource.id);
+                }
             }
         }
     },
@@ -74,7 +83,7 @@ module.exports = {
 
         return false;
     },
-    addStructureWorker: function(type, target) {
+    addStructureWorker: function(type, target, spawn) {
         // Creates a worker that will be assigned to a structure or source
         // Returns true if the worker was successfully added
         if (!(type in WorkerRecipes)) {
@@ -83,26 +92,21 @@ module.exports = {
 
         var recipe = WorkerRecipes[type].recipe;
         var name = type + "_" + (++this.memory.creeps.All);
-        for (let spawnId in this.memory.structures[STRUCTURE_SPAWN]) {
-            var spawn = Game.getObjectById(spawnId);
-            var spawnMem = this.memory.structures[STRUCTURE_SPAWN][spawnId];
-            if (!spawnMem.spawning && spawn.spawnCreep(recipe, name, {dryRun: true}) == OK) {
-                spawnMem.spawning = true; //TODO clean this up later
-                var newCreep = spawn.spawnCreep(recipe, name, {
-                    memory: {
-                        initialized: false,
-                        role: type,
-                        target: target.id
-                    }
-                });
-                
-                if (target.id in this.memory.sources) {
-                    this.memory.sources[target.id].worker = name;
-                    console.log("Assigned  creep '" + name + "' to structure '" + target.id + "'")
+        if (spawn.spawnCreep(recipe, name, {dryRun: true}) == OK) {
+            var newCreep = spawn.spawnCreep(recipe, name, {
+                memory: {
+                    initialized: false,
+                    role: type,
+                    target: target.id
                 }
-
-                return true;
+            });
+            
+            if (target.id in this.memory.sources) {
+                this.memory.sources[target.id].worker = name;
+                console.log("Assigned  creep '" + name + "' to structure '" + target.id + "'")
             }
+
+            return true;
         }
 
         return false;
