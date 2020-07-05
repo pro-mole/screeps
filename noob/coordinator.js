@@ -113,7 +113,8 @@ module.exports = {
     },
     cleanup: function() {
         for (let sourceId in this.memory.sources) {
-            let workerId = this.memory.sources[sourceId].worker;
+            let source = this.memory.sources[sourceId];
+            let workerId = source.worker;
             if (workerId != undefined) {
                 let worker = Game.creeps[workerId];
                 if (worker == undefined) {
@@ -123,11 +124,12 @@ module.exports = {
         }
 
         for (let structId in this.memory.structures) {
-            let workerId = this.memory.structures[structId].worker;
+            let structure = this.memory.structures[structId];
+            let workerId = structure.worker;
             if (workerId != undefined) {
                 let worker = Game.creeps[workerId];
                 if (worker == undefined) {
-                    source.worker = undefined;
+                    structure.worker = undefined;
                 }
             }
         }
