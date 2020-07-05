@@ -16,6 +16,7 @@ module.exports = {
 
         Memory.coordinator = {
             initialized: true,
+            level: 1,
             structures: {
             },
             sources: {
@@ -39,18 +40,25 @@ module.exports = {
         }
     },
     assess: function() {
+        var coordinatorLevel = this.memory.level;
+
         // Create harvesters for the sources
         var knownSources = _.map(this.memory.sources,
             (sourceData, sourceId) => Game.getObjectById(sourceId));
         var vacantSources = _.filter(knownSources,
             (source) => this.memory.sources[source.id].worker == undefined);
+        var harvestersNeeded = coordinatorLevel - (knownSources.length - vacantSources.length);
         
-        for (let spawnId in Game.spawns) {
-            let spawn = Game.spawns[spawnId];
-            if (!spawn.memory.spawning) {
+        while (harvestersNeeded > 0 && vacantSources.length > 0) {
+            if (knownSources.length - vacantSources.length >= this.memory.level)
+                break;
+            
+            for (let spawnId in Game.spawns) {
+                let spawn = Game.spawns[spawnId];
                 var closestSource = spawn.pos.findClosestByPath(vacantSources);
                 if (this.addStructureWorker("harvester", closestSource, spawn)) {
-                    _.remove(vacantSources, (source) => source.id == closestSource.id);
+                    _.pull(vacantSources, closestSource);
+                    harvestersNeeded -= 1;
                 }
             }
         }
