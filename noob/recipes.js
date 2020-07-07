@@ -4,5 +4,8 @@
 module.exports = {
     harvester: {
         recipe: [MOVE, WORK, CARRY]
+    },
+    builder: {
+        recipe: [MOVE, WORK, CARRY]
     }
 }

@@ -21,6 +21,8 @@ module.exports = {
             },
             sources: {
             },
+            sites: {
+            },
             creeps: {
                 All: 0
             }
@@ -49,10 +51,7 @@ module.exports = {
             (source) => this.memory.sources[source.id].worker == undefined);
         var harvestersNeeded = coordinatorLevel - (knownSources.length - vacantSources.length);
         
-        while (harvestersNeeded > 0 && vacantSources.length > 0) {
-            if (knownSources.length - vacantSources.length >= this.memory.level)
-                break;
-            
+        if (harvestersNeeded > 0 && vacantSources.length > 0) {
             for (let spawnId in Game.spawns) {
                 let spawn = Game.spawns[spawnId];
                 var closestSource = spawn.pos.findClosestByPath(vacantSources);
@@ -60,6 +59,27 @@ module.exports = {
                     _.pull(vacantSources, closestSource);
                     harvestersNeeded -= 1;
                 }
+
+                if (harvestersNeeded == 0) break;
+            }
+        }
+
+        // Create builders for the construction sites
+        var knownSites = _.map(this.memory.sites,
+            (siteData, siteId) => Game.getObjectById(siteId));
+        var vacantSites = _.filter(knownSites,
+            (site) => this.memory.sites[site.id].worker == undefined);
+        var buildersNeeded = coordinatorLevel - (knownSites.length - vacantSites.length);
+        if (buildersNeeded > 0 && vacantSites.length > 0) {
+            for (let spawnId in Game.spawns) {
+                let spawn = Game.spawns[spawnId];
+                var closestSite = spawn.pos.findClosestByPath(vacantSites);
+                if (this.addStructureWorker("builder", closestSite, spawn)) {
+                    _.pull(vacantSites, closestSite);
+                    buildersNeeded -= 1;
+                }
+
+                if (buildersNeeded == 0) break;
             }
         }
     },
@@ -111,7 +131,11 @@ module.exports = {
             
             if (target.id in this.memory.sources) {
                 this.memory.sources[target.id].worker = name;
-                console.log("Assigned  creep '" + name + "' to structure '" + target.id + "'")
+                console.log("Assigned  creep '" + name + "' to source '" + target.id + "'")
+            }
+            if (target.id in this.memory.sites) {
+                this.memory.sites[target.id].worker = name;
+                console.log("Assigned  creep '" + name + "' to construction site '" + target.id + "'")
             }
 
             return true;
