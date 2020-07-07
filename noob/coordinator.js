@@ -44,42 +44,77 @@ module.exports = {
     assess: function() {
         var coordinatorLevel = this.memory.level;
 
-        // Create harvesters for the sources
+        // Reassess construction sites
+        for (let roomName in Game.rooms) {
+            var room = Game.rooms[roomName];
+            for (let site of room.find(FIND_CONSTRUCTION_SITES)) {
+                this.addSite(site);
+            }
+        }
+
+        // Check if we need more harvesters
         var knownSources = _.map(this.memory.sources,
             (sourceData, sourceId) => Game.getObjectById(sourceId));
-        var vacantSources = _.filter(knownSources,
+        this.vacantSources = _.filter(knownSources,
             (source) => this.memory.sources[source.id].worker == undefined);
-        var harvestersNeeded = coordinatorLevel - (knownSources.length - vacantSources.length);
+        this.harvestersNeeded = coordinatorLevel - (knownSources.length - this.vacantSources.length);
+
+        // Check if we need more builders
+        var knownSites = _.map(this.memory.sites,
+            (siteData, siteId) => Game.getObjectById(siteId));
+        this.vacantSites = _.filter(knownSites,
+            (site) => this.memory.sites[site.id].worker == undefined);
+        this.buildersNeeded = coordinatorLevel - (knownSites.length - this.vacantSites.length);
         
-        if (harvestersNeeded > 0 && vacantSources.length > 0) {
+
+    },
+    coordinate: function() {
+        // Create harvesters for the sources
+        if (this.harvestersNeeded > 0 && this.vacantSources.length > 0) {
             for (let spawnId in Game.spawns) {
                 let spawn = Game.spawns[spawnId];
-                var closestSource = spawn.pos.findClosestByPath(vacantSources);
+                var closestSource = spawn.pos.findClosestByPath(this.vacantSources);
                 if (this.addStructureWorker("harvester", closestSource, spawn)) {
-                    _.pull(vacantSources, closestSource);
-                    harvestersNeeded -= 1;
+                    _.pull(this.vacantSources, closestSource);
+                    this.harvestersNeeded -= 1;
                 }
 
-                if (harvestersNeeded == 0) break;
+                if (this.harvestersNeeded == 0) break;
             }
         }
 
         // Create builders for the construction sites
-        var knownSites = _.map(this.memory.sites,
-            (siteData, siteId) => Game.getObjectById(siteId));
-        var vacantSites = _.filter(knownSites,
-            (site) => this.memory.sites[site.id].worker == undefined);
-        var buildersNeeded = coordinatorLevel - (knownSites.length - vacantSites.length);
-        if (buildersNeeded > 0 && vacantSites.length > 0) {
+        if (this.buildersNeeded > 0 && this.vacantSites.length > 0) {
             for (let spawnId in Game.spawns) {
                 let spawn = Game.spawns[spawnId];
-                var closestSite = spawn.pos.findClosestByPath(vacantSites);
+                var closestSite = spawn.pos.findClosestByPath(this.vacantSites);
                 if (this.addStructureWorker("builder", closestSite, spawn)) {
-                    _.pull(vacantSites, closestSite);
-                    buildersNeeded -= 1;
+                    _.pull(this.vacantSites, closestSite);
+                    this.buildersNeeded -= 1;
                 }
 
-                if (buildersNeeded == 0) break;
+                if (this.buildersNeeded == 0) break;
+            }
+        }
+
+        // If the Spawn is full, start building containers
+        for (let spawnId in Game.spawns) {
+            let spawn = Game.spawns[spawnId];
+            if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                var knownSources = _.map(this.memory.sources,
+                    (sourceData, sourceId) => Game.getObjectById(sourceId));
+                var vacantSources = _.filter(knownSources,
+                    (source) => this.memory.sources[source.id].storage == undefined);
+                var closestSource = spawn.pos.findClosestByPath(vacantSources);
+
+                if (closestSource != undefined) {
+                    let pathToSource = spawn.pos.findPathTo(closestSource);
+                    let midPoint = pathToSource[pathToSource.length / 2];
+                    if (spawn.room.createConstructionSite(midPoint.x, midPoint.y, STRUCTURE_CONTAINER) == OK) {
+                        // Can't use the id of the newly generated site, so for now just leave a marker for it
+                        this.memory.sources[closestSource.id].storage = {x: midPoint.x, y: midPoint.y};
+                    }
+                }
             }
         }
     },
@@ -104,12 +139,26 @@ module.exports = {
         // Add a source to the memory, if it's not already there
         // Returns true if the structure was actually unknown
         var sourceMemory = this.memory.sources;
-        if (!(source.id in sourceMemory)) {
-            sourceMemory[source.id] = {};
-            return true;
-        }
+        if (source.id in sourceMemory) 
+            return false;
 
-        return false;
+        sourceMemory[source.id] = {};
+
+        return true;
+    },
+    addSite: function(site) {
+        // Add a construction site to the memory, if it's not already there
+        // Returns true if the structure was actually unknown
+        var siteMemory = this.memory.sites;
+        if (site.id in siteMemory) 
+            return false;
+
+        siteMemory[site.id] = {
+            x: site.pos.x,
+            y: site.pos.y
+        };
+
+        return true;
     },
     addStructureWorker: function(type, target, spawn) {
         // Creates a worker that will be assigned to a structure or source

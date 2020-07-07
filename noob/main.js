@@ -13,6 +13,7 @@ module.exports = {
     loop: function() {
         this.coordinator.init();
         this.coordinator.assess();
+        this.coordinator.coordinate();
 
         let creeps = _.filter(Game.creeps, (creep) => !creep.spawning);
         _.forEach(_.filter(creeps, (creep) => !creep.memory.initialized),
