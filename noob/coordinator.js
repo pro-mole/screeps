@@ -56,8 +56,11 @@ module.exports = {
         var knownSources = _.map(this.memory.sources,
             (sourceData, sourceId) => Game.getObjectById(sourceId));
         this.vacantSources = _.filter(knownSources,
-            (source) => this.memory.sources[source.id].worker == undefined);
-        this.harvestersNeeded = coordinatorLevel - (knownSources.length - this.vacantSources.length);
+            (source) => {
+                let sourceData = this.memory.sources[source.id];
+                return sourceData.workers.length < sourceData.capacity;
+            });
+        this.harvestersNeeded = 2 * coordinatorLevel - (knownSources.length - this.vacantSources.length);
 
         // Check if we need more builders
         var knownSites = _.map(this.memory.sites,
@@ -75,7 +78,9 @@ module.exports = {
                 let spawn = Game.spawns[spawnId];
                 var closestSource = spawn.pos.findClosestByPath(this.vacantSources);
                 if (this.addStructureWorker("harvester", closestSource, spawn)) {
-                    _.pull(this.vacantSources, closestSource);
+                    let sourceData = this.memory.sources[closestSource.id];
+                    if (sourceData.workers.length >= sourceData.capacity)
+                        _.pull(this.vacantSources, closestSource);
                     this.harvestersNeeded -= 1;
                 }
 
@@ -142,7 +147,10 @@ module.exports = {
         if (source.id in sourceMemory) 
             return false;
 
-        sourceMemory[source.id] = {};
+        sourceMemory[source.id] = {
+            capacity: 1,
+            workers: []
+        };
 
         return true;
     },
@@ -179,7 +187,7 @@ module.exports = {
             });
             
             if (target.id in this.memory.sources) {
-                this.memory.sources[target.id].worker = name;
+                this.memory.sources[target.id].workers.push(name);
                 console.log("Assigned  creep '" + name + "' to source '" + target.id + "'")
             }
             if (target.id in this.memory.sites) {
@@ -195,13 +203,9 @@ module.exports = {
     cleanup: function() {
         for (let sourceId in this.memory.sources) {
             let source = this.memory.sources[sourceId];
-            let workerId = source.worker;
-            if (workerId != undefined) {
-                let worker = Game.creeps[workerId];
-                if (worker == undefined) {
-                    source.worker = undefined;
-                }
-            }
+            _.remove(source.workers,
+                (workerId) => Game.creeps[workerId] == undefined
+            )
         }
 
         for (let structId in this.memory.structures) {
