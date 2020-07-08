@@ -103,13 +103,13 @@ module.exports = {
             if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                 var knownSources = _.map(this.memory.sources,
                     (sourceData, sourceId) => Game.getObjectById(sourceId));
-                var vacantSources = _.filter(knownSources,
+                var unservicedSources = _.filter(knownSources,
                     (source) => this.memory.sources[source.id].storage == undefined);
-                var closestSource = spawn.pos.findClosestByPath(vacantSources);
+                var closestSource = spawn.pos.findClosestByPath(unservicedSources);
 
                 if (closestSource != undefined) {
                     let pathToSource = spawn.pos.findPathTo(closestSource);
-                    let midPoint = pathToSource[pathToSource.length / 2];
+                    let midPoint = pathToSource[Math.floor(pathToSource.length / 2)];
                     if (spawn.room.createConstructionSite(midPoint.x, midPoint.y, STRUCTURE_CONTAINER) == OK) {
                         // Can't use the id of the newly generated site, so for now just leave a marker for it
                         this.memory.sources[closestSource.id].storage = {x: midPoint.x, y: midPoint.y};
