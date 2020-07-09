@@ -221,6 +221,17 @@ module.exports = {
 
         return false;
     },
+    levelup: function() {
+        let incompleteSpawns = _.filter(Game.spawns,
+            (spawn) => spawn.store.getFreeCapacity() > 0);
+
+        if (this.incompleteSpawns.length == 0
+            && this.harvestersNeeded <= 0
+            && this.buildersNeeded <= 0
+            && this.memory.sites.length == 0) {
+            this.memory.level++;
+        }
+    },
     cleanup: function() {
         for (let sourceId in this.memory.sources) {
             let source = this.memory.sources[sourceId];
