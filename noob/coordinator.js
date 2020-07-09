@@ -148,9 +148,19 @@ module.exports = {
             return false;
 
         sourceMemory[source.id] = {
-            capacity: 1,
+            capacity: 0,
             workers: []
         };
+
+        let terrainData = new Room.Terrain(source.room.name);
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dy == 0 && dx == 0) continue;
+                if (terrainData.get(source.pos.x + dx, source.pos.y + dy) == 0) {
+                    sourceMemory[source.id].capacity += 1;
+                }
+            }
+        }
 
         return true;
     },
