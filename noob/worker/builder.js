@@ -1,4 +1,4 @@
-// Harvester Worker Behavior
+// Builder Worker Behavior
 
 var _ = require("lodash")
 
