@@ -71,7 +71,13 @@ module.exports = {
         let availableBuilders = knownSites.length - this.vacantSites.length;
         this.buildersNeeded = coordinatorLevel - availableBuilders;
         
-
+        // Check if we need more upgraders
+        var knownControllers = _.map(this.memory.structures[STRUCTURE_CONTROLLER],
+            (_, controllerId) => Game.getObjectById(controllerId));
+        this.vacantControllers = _.filter(knownControllers,
+            (controller) => this.memory.structures[STRUCTURE_CONTROLLER][controller.id].worker == undefined);
+        let availableUpgraders = knownControllers.length - this.vacantControllers.length;
+        this.upgradersNeeded = coordinatorLevel - availableUpgraders;
     },
     coordinate: function() {
         let busySpawns = {}
@@ -108,6 +114,23 @@ module.exports = {
                 }
 
                 if (this.buildersNeeded <= 0) break;
+            }
+        }
+
+        // Create upgraders for the room controller
+        if (this.upgradersNeeded > 0 && this.vacantControllers.length > 0) {
+            for (let spawnId in Game.spawns) {
+                if (busySpawns[spawnId] != undefined) continue;
+
+                let spawn = Game.spawns[spawnId];
+                var closestController = spawn.pos.findClosestByPath(this.vacantControllers);
+                if (this.addStructureWorker("upgrader", closestController, spawn)) {
+                    busySpawns[spawnId] = true;
+                    _.pull(this.vacantControllers, closestController);
+                    this.upgradersNeeded -= 1;
+                }
+
+                if (this.upgradersNeeded <= 0) break;
             }
         }
 

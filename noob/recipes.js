@@ -6,6 +6,9 @@ module.exports = {
         recipe: [MOVE, WORK, CARRY]
     },
     builder: {
-        recipe: [MOVE, WORK, CARRY]
+        recipe: [MOVE, WORK, CARRY, CARRY]
+    },
+    upgrader: {
+        recipe: [MOVE, WORK, CARRY, CARRY]
     }
 }
