@@ -257,10 +257,15 @@ module.exports = {
         let incompleteSpawns = _.filter(Game.spawns,
             (spawn) => spawn.store.getFreeCapacity() > 0);
 
-        if (this.incompleteSpawns.length == 0
+        let maxControllerLevel = _.max(_.map(Game.rooms,
+            (room) => room.controller.level));
+
+        if (maxControllerLevel > 1
+            && incompleteSpawns.length == 0
             && this.harvestersNeeded <= 0
             && this.buildersNeeded <= 0
-            && this.memory.sites.length == 0) {
+            && this.upgradersNeeded <= 0) {
+            Game.notify("Coordinator Level has been upgraded! (Level 2)");
             this.memory.level++;
         }
     },

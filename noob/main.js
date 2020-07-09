@@ -25,5 +25,6 @@ module.exports = {
         _.forEach(creeps, (creep) => creep.run());
 
         this.coordinator.cleanup();
+        this.coordinator.levelup();
     }
 }
