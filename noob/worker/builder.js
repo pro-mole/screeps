@@ -83,7 +83,7 @@ module.exports = {
                         reusePath: 32,
                         visualizePathStyle: {
                             fill: 'transparent',
-                            stroke: '#080',
+                            stroke: '#f80',
                             lineStyle: 'dashed',
                             strokeWidth: .15,
                             opacity: .2
