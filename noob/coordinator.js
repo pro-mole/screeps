@@ -207,13 +207,22 @@ module.exports = {
                 }
             });
             
-            if (target.id in this.memory.sources) {
-                this.memory.sources[target.id].workers.push(name);
-                console.log("Assigned  creep '" + name + "' to source '" + target.id + "'")
+            if (target.structureType != undefined) {
+                let memoryBank = this.memory.structures[target.structureType];
+                if (target.id in memoryBank) {
+                    memoryBank[target.id].worker = name;
+                    console.log("Assigned  creep '" + name + "' to structure '" + target.id + "' (" + target.structureType + ")")
+                }
             }
-            if (target.id in this.memory.sites) {
-                this.memory.sites[target.id].worker = name;
-                console.log("Assigned  creep '" + name + "' to construction site '" + target.id + "'")
+            else {
+                if (target.id in this.memory.sources) {
+                    this.memory.sources[target.id].workers.push(name);
+                    console.log("Assigned  creep '" + name + "' to source '" + target.id + "'")
+                }
+                if (target.id in this.memory.sites) {
+                    this.memory.sites[target.id].worker = name;
+                    console.log("Assigned  creep '" + name + "' to construction site '" + target.id + "'")
+                }
             }
 
             return true;
