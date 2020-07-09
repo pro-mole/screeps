@@ -186,8 +186,8 @@ module.exports = {
         }
 
         var recipe = WorkerRecipes[type].recipe;
-        var name = type + "_" + (++this.memory.creeps.All);
-        if (spawn.spawnCreep(recipe, name, {dryRun: true}) == OK) {
+        if (spawn.spawnCreep(recipe, "DUMMY", {dryRun: true}) == OK) {
+            var name = type + "_" + (++this.memory.creeps.All);
             var newCreep = spawn.spawnCreep(recipe, name, {
                 memory: {
                     initialized: false,
